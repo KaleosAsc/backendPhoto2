@@ -14,7 +14,7 @@ class User(models.Model):
 class Post(models.Model):
    post_id = models.AutoField(primary_key=True)
    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-   image_link =  models.CharField(max_length=300)
+   image_link = models.ImageField(upload_to='images/',null=True,default=None)
    description_photo = models.CharField(max_length=150)
    five_starts =  models.IntegerField(default=0)
    four_starts =  models.IntegerField(default=0)
