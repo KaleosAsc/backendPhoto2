@@ -3,16 +3,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import User, Post, Interaction
 from .serializer import UserSerializer, PostSerializer, InteractionSerializer
+from rest_framework.permissions import IsAuthenticated
 
-class UserDetail(APIView):
-    def get(self,request, pk=None):
-        #Bring all the users save in databse model
-        users = User.objects.all()
-        #Indicate all the serilializer json for user and many model objects
-        serializer = UserSerializer(users, many=True)
-        #Return a response with json data and 200 status
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+class registerUsers(APIView):
+    #Method for create user in database
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -21,6 +15,18 @@ class UserDetail(APIView):
         print(serializer.errors)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
     
+class UserDetail(APIView):
+    permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
+    #Method for have the users data 
+    def get(self,request, pk=None):
+        #Bring all the users save in databse model
+        users = User.objects.all()
+        #Indicate all the serilializer json for user and many model objects
+        serializer = UserSerializer(users, many=True)
+        #Return a response with json data and 200 status
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
     def put(self, request, pk):
         user = User.objects.get(pk=pk)
         serializer = UserSerializer(user, data=request.data, partial=True)
@@ -36,6 +42,7 @@ class UserDetail(APIView):
     
 #Request for Post model
 class PostDetail(APIView):
+    permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         posts = Post.objects.all();
         serializer = PostSerializer(posts, many=True)
@@ -63,6 +70,7 @@ class PostDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class InteractionDetail(APIView):
+    permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         inter = Interaction.objects.all();
         serializer = InteractionSerializer(inter, many=True)

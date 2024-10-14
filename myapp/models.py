@@ -1,15 +1,17 @@
 from django.db import models
+from rest_framework_simplejwt.settings import api_settings
+from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
-class User(models.Model):
+class User(AbstractUser):
    user_id = models.AutoField(primary_key=True)
-   first_name = models.CharField(max_length=200)
-   last_name = models.CharField(max_length=50)
    birthday = models.DateTimeField()
-   user_name = models.CharField(max_length=10)
-   email = models.CharField(max_length=50)
-   password = models.CharField(max_length=50)
    description = models.CharField(max_length=50)
+   # groups = None
+   # user_permissions = None
+   api_settings.USER_ID_FIELD = 'user_id'
+   USERNAME_FIELD  = 'username'
+   REQUIRED_FIELDS = ['email', 'first_name', 'last_name','birthday','description']
 
 class Post(models.Model):
    post_id = models.AutoField(primary_key=True)
