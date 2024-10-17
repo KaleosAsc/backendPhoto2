@@ -3,7 +3,9 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import User, Post, Interaction
 from .serializer import UserSerializer, PostSerializer, InteractionSerializer
+from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
+from .tokens import create_jwt_pair_for_user
 
 class registerUsers(APIView):
     #Method for create user in database
@@ -14,6 +16,35 @@ class registerUsers(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+    
+class loginUser(APIView):
+    permission_classes = []
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        user = authenticate(email=email ,password = password)
+        
+        if user is not None:
+
+            tokens = create_jwt_pair_for_user(user)
+
+            response = {"message": "Login Successfull", "tokens": tokens}
+            return Response(data=response, status=status.HTTP_200_OK)
+
+        else:
+            return Response(data={"message": "Invalid email or password"})
+
+    def get(self, request: Request):
+        content = {"user": str(request.user), "auth": str(request.auth)}
+
+        return Response(data=content, status=status.HTTP_200_OK)
+        # serializer = UserSerializer(data=request.data)
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # print(serializer.errors)
+        # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+    
     
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
