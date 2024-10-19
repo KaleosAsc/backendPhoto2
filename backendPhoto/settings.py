@@ -57,6 +57,11 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8000',  # Aquí pones los dominios que pueden hacer peticiones
+    'http://127.0.0.1:8000',
+]
 
 ROOT_URLCONF = 'backendPhoto.urls'
 

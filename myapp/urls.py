@@ -1,8 +1,9 @@
 from django.urls import include, path
-from .views import UserDetail, PostDetail, InteractionDetail, registerUsers
+from .views import UserDetail, PostDetail, InteractionDetail, registerUsers, CustomTokenObtainPairView
 
 urlpatterns = [
     #Misma para get  y post 
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('register/', registerUsers.as_view(), name="register"),
     path('user/', UserDetail.as_view(), name="user"),
     path('user/<int:pk>/', UserDetail.as_view(), name='user-detail'),

@@ -3,9 +3,45 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import User, Post, Interaction
 from .serializer import UserSerializer, PostSerializer, InteractionSerializer
-from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
-from .tokens import create_jwt_pair_for_user
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
+from myapp.authentication import authenticationRefresh
+
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)  # Obtiene la respuesta original
+
+        # Extrae el token de acceso y de actualización del cuerpo de la respuesta
+        access_token = response.data.get('access')
+        refresh_token = response.data.get('refresh')
+
+        # Crea una nueva respuesta sin los tokens en el cuerpo
+        response = Response({"message": "Login successful. Tokens are set in cookies."})
+
+        # Establece el token de acceso como una cookie HTTP-only
+        response.set_cookie(
+            key='access_token',  # Nombre de la cookie
+            value=access_token,
+            httponly=True,       # Evita que JavaScript acceda a la cookie
+            secure=True,         # Asegura que solo se envíe por HTTPS
+            samesite='Lax'       # Opcional, restringe el envío de la cookie
+        )
+
+        # También puedes guardar el refresh token como una cookie
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            samesite='Lax'
+        )
+
+        return response
+
 
 class registerUsers(APIView):
     #Method for create user in database
@@ -17,27 +53,27 @@ class registerUsers(APIView):
         print(serializer.errors)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
     
-class loginUser(APIView):
-    permission_classes = []
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-        user = authenticate(email=email ,password = password)
+# class loginUser(APIView):
+#     permission_classes = []
+#     def post(self, request):
+#         email = request.data.get('email')
+#         password = request.data.get('password')
+#         user = authenticate(email=email ,password = password)
         
-        if user is not None:
+#         if user is not None:
 
-            tokens = create_jwt_pair_for_user(user)
+#             tokens = create_jwt_pair_for_user(user)
 
-            response = {"message": "Login Successfull", "tokens": tokens}
-            return Response(data=response, status=status.HTTP_200_OK)
+#             response = {"message": "Login Successfull", "tokens": tokens}
+#             return Response(data=response, status=status.HTTP_200_OK)
 
-        else:
-            return Response(data={"message": "Invalid email or password"})
+#         else:
+#             return Response(data={"message": "Invalid email or password"})
 
-    def get(self, request: Request):
-        content = {"user": str(request.user), "auth": str(request.auth)}
+#     def get(self, request: Request):
+#         content = {"user": str(request.user), "auth": str(request.auth)}
 
-        return Response(data=content, status=status.HTTP_200_OK)
+#         return Response(data=content, status=status.HTTP_200_OK)
         # serializer = UserSerializer(data=request.data)
         # if serializer.is_valid():
         #     serializer.save()
@@ -46,11 +82,10 @@ class loginUser(APIView):
         # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
     
     
-class UserDetail(APIView):
-    permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
+class UserDetail(APIView):    
+    permission_classes = [authenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
     #Method for have the users data 
     def get(self,request, pk=None):
-        #Bring all the users save in databse model
         users = User.objects.all()
         #Indicate all the serilializer json for user and many model objects
         serializer = UserSerializer(users, many=True)
@@ -73,7 +108,7 @@ class UserDetail(APIView):
     
 #Request for Post model
 class PostDetail(APIView):
-    permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
+    permission_classes = [authenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         posts = Post.objects.all();
         serializer = PostSerializer(posts, many=True)
@@ -101,7 +136,7 @@ class PostDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class InteractionDetail(APIView):
-    permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
+    permission_classes = [authenticationRefresh]  #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         inter = Interaction.objects.all();
         serializer = InteractionSerializer(inter, many=True)
