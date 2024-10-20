@@ -27,9 +27,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             key='access_token',  # Nombre de la cookie
             value=access_token,
             httponly=True,       # Evita que JavaScript acceda a la cookie
-            secure=True,         # Asegura que solo se envíe por HTTPS
-            samesite=None,    # Opcional, restringe el envío de la cookie
-            path = '/'
+            # secure=True,         # Asegura que solo se envíe por HTTPS
+            samesite='Lax'       # Opcional, restringe el envío de la cookie
         )
 
         # También puedes guardar el refresh token como una cookie
@@ -37,9 +36,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             key='refresh_token',
             value=refresh_token,
             httponly=True,
-            secure=True,
-            samesite=None,
-            path = '/'
+            # secure=True,
+            samesite='Lax'
         )
 
         return response
