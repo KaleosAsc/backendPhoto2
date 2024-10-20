@@ -56,10 +56,10 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False  # Cambia a False si usas la lista blanca
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
-    'http://localhost:8000',  # Aquí pones los dominios que pueden hacer peticiones
+    'http://localhost:3000',  # Asegúrate de que este sea tu frontend
     'http://127.0.0.1:8000',
 ]
 
