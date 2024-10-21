@@ -12,9 +12,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+logger = logging.getLogger(__name__)
 
 
 # Quick-start development settings - unsuitable for production
@@ -28,6 +30,16 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+
+class CookieLoggingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        logger.info(f"Cookies recibidas: {request.COOKIES}")
+        response = self.get_response(request)
+        logger.info(f"Cookies enviadas: {response.cookies}")
+        return response
 
 # Application definition
 
@@ -60,8 +72,8 @@ CORS_ALLOW_ALL_ORIGINS = False  # Cambia a False si usas la lista blanca
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',  # Asegúrate de que este sea tu frontend
-    'http://127.0.0.1:8000',
-]
+    'http://127.0.0.1:8000']
+
 
 ROOT_URLCONF = 'backendPhoto.urls'
 

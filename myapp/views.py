@@ -7,7 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
-from myapp.authentication import authenticationRefresh
+from myapp.AuthenticationRefresh import AuthenticationRefresh
+from django.conf import settings
+
 
 
 
@@ -24,20 +26,27 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
         # Establece el token de acceso como una cookie HTTP-only
         response.set_cookie(
-            key='access_token',  # Nombre de la cookie
-            value=access_token,
-            httponly=True,       # Evita que JavaScript acceda a la cookie
-            # secure=True,         # Asegura que solo se envíe por HTTPS
-            samesite='Lax'       # Opcional, restringe el envío de la cookie
+            'access_token',
+            access_token,
+            max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+            httponly=True,
+            samesite='Lax',
+            secure=settings.DEBUG is False  # True en producción
+            # key='access_token',  # Nombre de la cookie
+            # value=access_token,
+            # httponly=True,       # Evita que JavaScript acceda a la cookie
+            # # secure=True,         # Asegura que solo se envíe por HTTPS
+            # samesite='Lax'    # Opcional, restringe el envío de la cookie
         )
 
         # También puedes guardar el refresh token como una cookie
         response.set_cookie(
-            key='refresh_token',
-            value=refresh_token,
+            'access_token',
+            access_token,
+            max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
             httponly=True,
-            # secure=True,
-            samesite='Lax'
+            samesite='Lax',
+            secure=settings.DEBUG is False  # True en producción
         )
 
         return response
@@ -83,7 +92,7 @@ class registerUsers(APIView):
     
     
 class UserDetail(APIView):    
-    permission_classes = [authenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
+    permission_classes = [AuthenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
     #Method for have the users data 
     def get(self,request, pk=None):
         users = User.objects.all()
@@ -108,7 +117,7 @@ class UserDetail(APIView):
     
 #Request for Post model
 class PostDetail(APIView):
-    permission_classes = [authenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
+    # permission_classes = [AuthenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         posts = Post.objects.all();
         serializer = PostSerializer(posts, many=True)
@@ -136,7 +145,7 @@ class PostDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class InteractionDetail(APIView):
-    permission_classes = [authenticationRefresh]  #Authentication request for access API(give access token from api/token endpoint)
+    permission_classes = [AuthenticationRefresh]  #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         inter = Interaction.objects.all();
         serializer = InteractionSerializer(inter, many=True)
