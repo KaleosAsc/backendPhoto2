@@ -92,7 +92,7 @@ class registerUsers(APIView):
     
     
 class UserDetail(APIView):    
-    permission_classes = [AuthenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
+    # permission_classes = [AuthenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
     #Method for have the users data 
     def get(self,request, pk=None):
         users = User.objects.all()
@@ -145,7 +145,7 @@ class PostDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class InteractionDetail(APIView):
-    permission_classes = [AuthenticationRefresh]  #Authentication request for access API(give access token from api/token endpoint)
+    # permission_classes = [AuthenticationRefresh]  #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         inter = Interaction.objects.all();
         serializer = InteractionSerializer(inter, many=True)
