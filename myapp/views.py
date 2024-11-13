@@ -2,17 +2,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from .models import User, Post, Interaction
-from .serializer import UserSerializer, PostSerializer, InteractionSerializer
+from .serializer import UserSerializer, PostSerializer, InteractionSerializer, UserDataSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 from myapp.AuthenticationRefresh import AuthenticationRefresh
 from django.conf import settings
 
 
-
-
+#Endpoint for LoginUser
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)  # Obtiene la respuesta original
@@ -20,9 +20,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         # Extrae el token de acceso y de actualización del cuerpo de la respuesta
         access_token = response.data.get('access')
         refresh_token = response.data.get('refresh')
+        
+        #Acces to user_id between access_token
+        user_id = AccessToken(access_token)['user_id']
 
         # Crea una nueva respuesta sin los tokens en el cuerpo
-        response = Response({"message": "Login successful. Tokens are set in cookies."})
+        response = Response({"message": "Login successful. Tokens are set in cookies.",
+                             "user_id": user_id
+                            })
 
         # Establece el token de acceso como una cookie HTTP-only
         response.set_cookie(
@@ -62,46 +67,25 @@ class registerUsers(APIView):
         print(serializer.errors)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
     
-# class loginUser(APIView):
-#     permission_classes = []
-#     def post(self, request):
-#         email = request.data.get('email')
-#         password = request.data.get('password')
-#         user = authenticate(email=email ,password = password)
-        
-#         if user is not None:
 
-#             tokens = create_jwt_pair_for_user(user)
-
-#             response = {"message": "Login Successfull", "tokens": tokens}
-#             return Response(data=response, status=status.HTTP_200_OK)
-
-#         else:
-#             return Response(data={"message": "Invalid email or password"})
-
-#     def get(self, request: Request):
-#         content = {"user": str(request.user), "auth": str(request.auth)}
-
-#         return Response(data=content, status=status.HTTP_200_OK)
-        # serializer = UserSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # print(serializer.errors)
-        # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-    
-    
 class UserDetail(APIView):    
     # permission_classes = [AuthenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
     #Method for have the users data 
-    def get(self,request, pk=None):
-        users = User.objects.all()
-        #Indicate all the serilializer json for user and many model objects
-        serializer = UserSerializer(users, many=True)
-        #Return a response with json data and 200 status
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
+    def get(self, request, pk=None):
+        if pk is not None:
+            # Si se proporciona pk, devolver datos específicos de un usuario
+            user = User.objects.filter(user_id=pk).first()
+            if user:
+                serializer = UserDataSerializer(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Si no se proporciona pk, devolver datos de todos los usuarios
+            users = User.objects.all()
+            serializer = UserSerializer(users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
     def put(self, request, pk):
         user = User.objects.get(pk=pk)
         serializer = UserSerializer(user, data=request.data, partial=True)
@@ -119,9 +103,18 @@ class UserDetail(APIView):
 class PostDetail(APIView):
     # permission_classes = [AuthenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
-        posts = Post.objects.all();
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if pk is not None:
+            posts = Post.objects.filter(user_id_id=pk)
+            if posts:
+                 serializer = PostSerializer(posts, many=True)
+                 return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND) 
+        else:
+            posts = Post.objects.all();
+            serializer = PostSerializer(posts, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
     
     def post(self, request):
         serializer = PostSerializer(data=request.data)

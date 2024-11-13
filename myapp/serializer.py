@@ -20,7 +20,10 @@ class UserSerializer(serializers.ModelSerializer):
            instance.save()
            return instance
        
-       
+class UserDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username','user_id','first_name','last_name']
 class PostSerializer(serializers.ModelSerializer):
     image_link = serializers.FileField(max_length=1000000)
 
