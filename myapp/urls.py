@@ -1,5 +1,5 @@
 from django.urls import include, path
-from .views import UserDetail, PostDetail, InteractionDetail, registerUsers, CustomTokenObtainPairView
+from .views import UserDetail, PostDetail, InteractionDetail, registerUsers, CustomTokenObtainPairView, UpdatePostRating, EstimateRating, UsernameSearchView
 
 urlpatterns = [
     #Misma para get  y post 
@@ -10,5 +10,8 @@ urlpatterns = [
     path('post/', PostDetail.as_view(), name='post'),
     path('post/<int:pk>', PostDetail.as_view(), name='post-detail'),
     path('interaction/', InteractionDetail.as_view(), name='interaction'),
-    path('interaction/<int:pk>/', InteractionDetail.as_view(), name='interaction-detail')
+    path('interaction/<int:pk>/', InteractionDetail.as_view(), name='interaction-detail'),
+    path('rating/', UpdatePostRating.as_view(), name='rating'),
+    path('post/estimate/<int:pk>/', EstimateRating.as_view(), name='estimate-rating'),
+    path('usernames/search/', UsernameSearchView.as_view(), name='username-search'),
 ]

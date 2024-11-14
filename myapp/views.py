@@ -11,7 +11,6 @@ from rest_framework_simplejwt.tokens import AccessToken
 from myapp.AuthenticationRefresh import AuthenticationRefresh
 from django.conf import settings
 
-
 #Endpoint for LoginUser
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -164,4 +163,78 @@ class InteractionDetail(APIView):
         inter = Interaction.objects.get(pk=pk)
         inter.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
+#Servicio Especial actualización
+class UpdatePostRating(APIView):
+    def post(self, request):
+        # Extraer la calificación y el post_id del cuerpo de la solicitud
+        post_id = request.data.get("post_id")
+        rating = request.data.get("rating")  # Debes asegurarte de que la calificación sea un valor de 1 a 5
+        
+        if post_id is None or rating not in [1, 2, 3, 4, 5]:
+            return Response({"error": "post_id and valid rating (1-5) are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Obtener el post correspondiente
+        try:
+            post = Post.objects.get(post_id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Actualizar la calificación del post basado en la calificación recibida
+        if rating == 1:
+            post.one_starts += 1
+        elif rating == 2:
+            post.two_starts += 1
+        elif rating == 3:
+            post.three_starts += 1
+        elif rating == 4:
+            post.four_starts += 1
+        elif rating == 5:
+            post.five_starts += 1
+
+        # Guardar el post con la nueva calificación
+        post.save()
+
+        # Retornar una respuesta exitosa
+        return Response(PostSerializer(post).data, status=status.HTTP_200_OK)
+
+#Servicio Especial Estimación
+class EstimateRating(APIView):
+    def get(self, request, pk=None):
+        """
+        Este endpoint calcula el estimado ponderado de las calificaciones de un post.
+        """
+        if pk is None:
+            return Response({"error": "post_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Obtener el post con el post_id especificado
+        post = Post.objects.filter(post_id=pk).first()
+
+        if not post:
+            return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Realizar el cálculo ponderado de la calificación
+        total_stars = (post.five_starts + post.four_starts + post.three_starts +
+                       post.two_starts + post.one_starts)
+        
+        if total_stars == 0:
+            return Response({"error": "No ratings available for this post"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        weighted_sum = (post.five_starts * 5) + (post.four_starts * 4) + \
+                       (post.three_starts * 3) + (post.two_starts * 2) + \
+                       (post.one_starts * 1)
+
+        estimated_rating = weighted_sum / total_stars
+        
+        # Regresar el estimado ponderado
+        return Response({"post_id": post.post_id, "estimated_rating": estimated_rating}, status=status.HTTP_200_OK)
+#Servicio Search
+class UsernameSearchView(APIView):
+    def get(self, request):
+        query = request.GET.get('query', '')  # Obtén el parámetro de búsqueda
+        if not query:
+            return Response({'error': 'Se requiere un parámetro de búsqueda'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Filtra los usuarios cuyo nombre de usuario contiene la cadena 'query'
+        users = User.objects.filter(username__icontains=query).values_list('username', flat=True)
+        return Response({'usernames': list(users)}, status=status.HTTP_200_OK)
