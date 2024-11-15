@@ -224,7 +224,7 @@ class EstimateRating(APIView):
                        (post.three_starts * 3) + (post.two_starts * 2) + \
                        (post.one_starts * 1)
 
-        estimated_rating = weighted_sum / total_stars
+        estimated_rating = round(weighted_sum / total_stars, 2)
         
         # Regresar el estimado ponderado
         return Response({"post_id": post.post_id, "estimated_rating": estimated_rating}, status=status.HTTP_200_OK)

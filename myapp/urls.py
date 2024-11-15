@@ -1,8 +1,8 @@
 from django.urls import include, path
-from .views import UserDetail, PostDetail, InteractionDetail, registerUsers, CustomTokenObtainPairView, UpdatePostRating, EstimateRating, UsernameSearchView
+from .views import UserDetail, PostDetail, InteractionDetail, registerUsers, CustomTokenObtainPairView, UpdatePostRating, EstimateRating, UsernameSearchView, EstimateRating # Add estimate_rating to imports
 
 urlpatterns = [
-    #Misma para get  y post 
+    # Same for GET and POST
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('register/', registerUsers.as_view(), name="register"),
     path('user/', UserDetail.as_view(), name="user"),
@@ -12,6 +12,6 @@ urlpatterns = [
     path('interaction/', InteractionDetail.as_view(), name='interaction'),
     path('interaction/<int:pk>/', InteractionDetail.as_view(), name='interaction-detail'),
     path('rating/', UpdatePostRating.as_view(), name='rating'),
-    path('post/estimate/<int:pk>/', EstimateRating.as_view(), name='estimate-rating'),
+    path('post/estimate/<int:pk>/', EstimateRating.as_view(), name='estimate_rating'),
     path('usernames/search/', UsernameSearchView.as_view(), name='username-search'),
 ]
