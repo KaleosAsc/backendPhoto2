@@ -29,7 +29,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['post_id', 'user_id', 'image_link', 'description_photo', 'five_starts', 'four_starts', 'three_starts', 'two_starts', 'one_starts']
+        fields = ['post_id', 'image_link', 'description_photo', 'five_starts', 'four_starts', 'three_starts', 'two_starts', 'one_starts']
 
         
 class InteractionSerializer(serializers.ModelSerializer):
