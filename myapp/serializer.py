@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Post, Interaction, User
+from rest_framework.response import Response
+
 
 #Lista todos los campos de cada uno de los modelos de la base de datos
 #Los transforma en formato JSON
@@ -29,7 +31,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['post_id', 'user_id', 'image_link', 'description_photo', 'five_starts', 'four_starts', 'three_starts', 'two_starts', 'one_starts']
+        fields = ['post_id', 'image_link', 'description_photo', 'five_starts', 'four_starts', 'three_starts', 'two_starts', 'one_starts']
 
         
 class InteractionSerializer(serializers.ModelSerializer):
