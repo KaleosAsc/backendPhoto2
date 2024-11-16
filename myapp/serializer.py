@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Post, Interaction, User
+from rest_framework.response import Response
+
 
 #Lista todos los campos de cada uno de los modelos de la base de datos
 #Los transforma en formato JSON

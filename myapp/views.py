@@ -1,62 +1,36 @@
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import status
 from .models import User, Post, Interaction
 from .serializer import UserSerializer, PostSerializer, InteractionSerializer, UserDataSerializer
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from myapp.AuthenticationRefresh import AuthenticationRefresh
-from django.conf import settings
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import AllowAny
 
-#Endpoint for LoginUser
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)  # Obtiene la respuesta original
 
-        # Extrae el token de acceso y de actualización del cuerpo de la respuesta
+        # Extrae los tokens de acceso y de actualización del cuerpo de la respuesta
         access_token = response.data.get('access')
         refresh_token = response.data.get('refresh')
         
-        #Acces to user_id between access_token
-        user_id = AccessToken(access_token)['user_id']
+        # Accede al user_id a partir del token de acceso
+        try:
+            user_id = AccessToken(access_token)['user_id']
+        except Exception as e:
+            return Response({"error": "Invalid token"}, status=400)
 
-        # Crea una nueva respuesta sin los tokens en el cuerpo
-        response = Response({"message": "Login successful. Tokens are set in cookies.",
-                             "user_id": user_id
-                            })
+        # Retorna una respuesta personalizada con los tokens, el mensaje y el user_id
+        return Response({
+            "message": "Login successful.",
+            "user_id": user_id,
+            "access": access_token,
+            "refresh": refresh_token
+        })
 
-        # Establece el token de acceso como una cookie HTTP-only
-        response.set_cookie(
-            'access_token',
-            access_token,
-            max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
-            httponly=True,
-            samesite='Lax',
-            secure=settings.DEBUG is False  # True en producción
-            # key='access_token',  # Nombre de la cookie
-            # value=access_token,
-            # httponly=True,       # Evita que JavaScript acceda a la cookie
-            # # secure=True,         # Asegura que solo se envíe por HTTPS
-            # samesite='Lax'    # Opcional, restringe el envío de la cookie
-        )
-
-        # También puedes guardar el refresh token como una cookie
-        response.set_cookie(
-            'access_token',
-            access_token,
-            max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
-            httponly=True,
-            samesite='Lax',
-            secure=settings.DEBUG is False  # True en producción
-        )
-
-        return response
-
-
-class registerUsers(APIView):
+class RegisterUsers(APIView):
     #Method for create user in database
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -68,7 +42,7 @@ class registerUsers(APIView):
     
 
 class UserDetail(APIView):    
-    # permission_classes = [AuthenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
+    permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
     #Method for have the users data 
     def get(self, request, pk=None):
         if pk is not None:
@@ -100,7 +74,7 @@ class UserDetail(APIView):
     
 #Request for Post model
 class PostDetail(APIView):
-    # permission_classes = [AuthenticationRefresh] #Authentication request for access API(give access token from api/token endpoint)
+    permission_classes = [IsAuthenticated] #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         if pk is not None:
             posts = Post.objects.filter(user_id_id=pk)
@@ -137,7 +111,7 @@ class PostDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class InteractionDetail(APIView):
-    # permission_classes = [AuthenticationRefresh]  #Authentication request for access API(give access token from api/token endpoint)
+    permission_classes = [IsAuthenticated]  #Authentication request for access API(give access token from api/token endpoint)
     def get(self, request, pk=None):
         inter = Interaction.objects.all();
         serializer = InteractionSerializer(inter, many=True)
@@ -166,6 +140,7 @@ class InteractionDetail(APIView):
 
 #Servicio Especial actualización
 class UpdatePostRating(APIView):
+    permission_classes = [IsAuthenticated] 
     def post(self, request):
         # Extraer la calificación y el post_id del cuerpo de la solicitud
         post_id = request.data.get("post_id")
@@ -200,6 +175,7 @@ class UpdatePostRating(APIView):
 
 #Servicio Especial Estimación
 class EstimateRating(APIView):
+    permission_classes = [IsAuthenticated] 
     def get(self, request, pk=None):
         """
         Este endpoint calcula el estimado ponderado de las calificaciones de un post.
@@ -230,6 +206,7 @@ class EstimateRating(APIView):
         return Response({"post_id": post.post_id, "estimated_rating": estimated_rating}, status=status.HTTP_200_OK)
 #Servicio Search
 class UsernameSearchView(APIView):
+    permission_classes = [IsAuthenticated] 
     def get(self, request):
         query = request.GET.get('query', '')  # Obtén el parámetro de búsqueda
         if not query:
