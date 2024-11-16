@@ -109,6 +109,10 @@ class PostDetail(APIView):
         post = Post.objects.get(pk=pk)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class PostDetailWithoutUser(APIView):
+    def get():
+        return None
 
 class InteractionDetail(APIView):
     permission_classes = [IsAuthenticated]  #Authentication request for access API(give access token from api/token endpoint)
